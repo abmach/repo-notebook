@@ -33,12 +33,19 @@ npx repo-notebook init
 The installer:
 
 1. finds the Git repository root;
-2. offers the supported harness locations (`.agents`, `.claude`, `.omp`, `.opencode`);
-3. asks before creating `.repo-notebook/`;
-4. asks before adding or updating an always-read instruction file (`AGENTS.md` or `CLAUDE.md`);
-5. installs the skills and records the installed version in `.repo-notebook-install.json`.
+2. in a terminal, offers an arrow-key multiselect of the supported harness
+   locations (`.agents`, `.claude`, `.omp`, `.opencode`) with locations whose
+   instruction file already exists preselected;
+3. asks (with an explicit default) before creating `.repo-notebook/`;
+4. asks (checkbox, all preselected) before adding or updating the
+   always-read instruction file (`AGENTS.md` or `CLAUDE.md`);
+5. shows a summary and asks for final confirmation before installing the
+   skills and recording the installed version in
+   `.repo-notebook-install.json`.
 
-`npm install repo-notebook` by itself does not make a harness discover or invoke the skills. The initializer performs that installation.
+With piped stdin/stdout (CI, scripts, tests) the interactive prompts fall
+back to the original line-based questions with identical text and meaning,
+so both paths stay compatible.
 
 Explicit flags also count as consent and use the same arguments across all supported runners:
 

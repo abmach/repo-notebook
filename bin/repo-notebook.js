@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-import { createInterface } from "node:readline";
-import { stdin, stdout } from "node:process";
 import {
   addInstruction,
   createNotebook,
@@ -13,6 +11,12 @@ import {
   supportedLocations,
   writeInstallMarker,
 } from "../lib/installer.js";
+import {
+  buildInstructionChoices,
+  buildLocationChoices,
+  createUi,
+  formatInstallResult,
+} from "../lib/prompts.js";
 
 const args = process.argv.slice(2);
 const packageData = await loadPackageData();
@@ -23,83 +27,73 @@ if (args.includes("--help") || args.includes("-h")) {
 }
 
 if (args[0] !== "init") {
-  console.error("Usage: repo-notebook init");
+  console.error(`Usage: repo-notebook init`);
   process.exit(2);
 }
 
 const explicitPlan = parseExplicitOptions(args.slice(1));
 const root = await findProjectRoot();
 const inspection = await inspectProject(root);
-const prompt = explicitPlan ? null : createPrompt();
+const ui = createUi();
 
 try {
   console.log(`Repo Notebook ${packageData.version}`);
   console.log(`Project: ${root}`);
-  if (explicitPlan) {
-    printLocations(inspection);
+
+  if (!explicitPlan) {
+    ui.renderProjectState(inspection);
   }
 
-  const selectedLocations = explicitPlan?.locations ?? await selectLocations(inspection, prompt);
+  const selectedLocations = explicitPlan?.locations ?? await pickLocations(inspection, ui);
   if (selectedLocations.length === 0) {
     console.log("No harness locations selected. Nothing was installed.");
     process.exit(0);
   }
 
-  const createNotebookDirectory = explicitPlan?.notebook ?? await confirmDefaultYes(
-    prompt,
-    inspection.notebookExists
-      ? `Create or refresh the ${notebookDirectory} templates? Existing files will be preserved. [Y/n] `
-      : `Create ${notebookDirectory} with starter records? [Y/n] `,
-  );
-
-  const instructionTargets = explicitPlan?.instructions ?? await selectInstructionTargets(selectedLocations, inspection, prompt);
+  const createNotebookDirectory = explicitPlan?.notebook ?? await pickNotebook(ui, inspection);
+  const instructionTargets = explicitPlan?.instructions ?? await pickInstructions(selectedLocations, inspection, ui);
 
   if (!explicitPlan) {
-    const confirmed = await confirmDefaultYes(prompt, "Install Repo Notebook with these choices? [Y/n] ");
-    if (!confirmed) {
+    // Genuine consent gate: the final summary + confirmation happens after
+    // every other choice, and cancelling here leaves the project untouched.
+    if (!(await ui.confirm({ message: "Install Repo Notebook with these choices?", defaultValue: true }))) {
       console.log("Installation cancelled. Nothing was installed.");
       process.exit(0);
     }
   }
 
-  for (const location of selectedLocations) {
-    await installSkills(root, location, packageData);
-  }
+  const stopSpinner = ui.startSpinner("Installing…");
+  try {
+    for (const location of selectedLocations) {
+      await installSkills(root, location, packageData);
+    }
 
-  let notebookCreated = false;
-  if (createNotebookDirectory) {
-    await createNotebook(root);
-    notebookCreated = true;
-  }
+    let notebookCreated = false;
+    if (createNotebookDirectory) {
+      await createNotebook(root);
+      notebookCreated = true;
+    }
 
-  const instructionFiles = [];
-  for (const target of instructionTargets) {
-    await addInstruction(root, target.instructionFile, packageData);
-    instructionFiles.push(target.instructionFile);
-  }
+    const instructionFiles = [];
+    for (const target of instructionTargets) {
+      await addInstruction(root, target.instructionFile, packageData);
+      instructionFiles.push(target.instructionFile);
+    }
 
-  await writeInstallMarker(
-    root,
-    packageData,
-    selectedLocations,
-    notebookCreated,
-    [...new Set(instructionFiles)],
-  );
+    await writeInstallMarker(
+      root,
+      packageData,
+      selectedLocations,
+      notebookCreated,
+      [...new Set(instructionFiles)],
+    );
 
-  console.log("\nInstalled:");
-  for (const location of selectedLocations) {
-    console.log(`- skills: ${location}/skills/`);
+    console.log(`\n${formatInstallResult(selectedLocations, notebookCreated, instructionFiles)}`);
+  } finally {
+    stopSpinner();
   }
-  if (notebookCreated) {
-    console.log(`- notebook: ${notebookDirectory}/`);
-  }
-  for (const instructionFile of [...new Set(instructionFiles)]) {
-    console.log(`- instruction: ${instructionFile}`);
-  }
-  console.log("- marker: .repo-notebook-install.json");
-  console.log("\nRun the bootstrap skill in your agent to propose the first durable records.");
 } finally {
-  prompt?.close();
+  ui.close();
 }
 
 function parseExplicitOptions(options) {
@@ -143,110 +137,46 @@ function parseExplicitOptions(options) {
   };
 }
 
-function printLocations(project) {
-  console.log("\nSupported harness locations:");
-  for (const location of project.locations) {
-    const state = location.skillsExist ? "skills already present" : "not installed";
-    const instruction = location.instructionExists ? "instruction exists" : "instruction absent";
-    console.log(`- ${location.path} (${state}; ${instruction})`);
-  }
+async function pickLocations(inspection, ui) {
+  const choices = buildLocationChoices(inspection);
+  const selected = await ui.selectLocations(choices);
+  return validateSelectedLocations(selected);
 }
 
-async function selectLocations(project, prompt) {
-  printLocations(project);
+async function pickNotebook(ui, inspection) {
+  const message = inspection.notebookExists
+    ? `Create or refresh the ${notebookDirectory} templates? Existing files will be preserved.`
+    : `Create ${notebookDirectory} with starter records?`;
+  return ui.confirm({ message, defaultValue: true });
+}
 
-  const answer = await prompt.ask(
-    `Install skills into which locations? Comma-separated, or "none" [none]: `,
+async function pickInstructions(selectedLocations, inspection, ui) {
+  const targets = [...new Set(selectedLocations.map((location) => supportedLocations[location]))].map(
+    (instructionFile) => ({
+      instructionFile,
+      exists: inspection.locations.some((entry) => entry.instructionName === instructionFile && entry.instructionExists),
+    }),
   );
-  const requested = answer
-    .split(",")
-    .map((value) => value.trim())
-    .filter(Boolean);
+  const choices = buildInstructionChoices(targets);
+  const picked = await ui.selectInstructions(choices);
 
-  if (requested.length === 0 || requested.includes("none")) {
-    return [];
+  const invalid = picked.filter((value) => !targets.some((target) => target.instructionFile === value));
+  if (invalid.length > 0) {
+    throw new Error(`Unsupported instruction file(s): ${invalid.join(", ")}`);
   }
 
-  const invalid = requested.filter((location) => !(location in supportedLocations));
+  return picked.map((instructionFile) => ({ instructionFile }));
+}
+
+function validateSelectedLocations(selected) {
+  if (!selected || selected.length === 0) {
+    return [];
+  }
+  const invalid = selected.filter((location) => !(location in supportedLocations));
   if (invalid.length > 0) {
     throw new Error(`Unsupported location(s): ${invalid.join(", ")}`);
   }
-
-  return [...new Set(requested)];
-}
-
-async function selectInstructionTargets(locations, project, prompt) {
-  const files = [...new Set(locations.map((location) => supportedLocations[location]))];
-  const targets = [];
-
-  for (const instructionName of files) {
-    const existing = project.locations.find((entry) => entry.instructionName === instructionName);
-    const answer = await prompt.ask(
-      `Add the always-on Repo Notebook instruction to ${instructionName}?${
-        existing?.instructionExists ? " The existing file will be preserved." : ""
-      } [Y/n] `,
-    );
-    if (isDefaultYes(answer)) {
-      targets.push({ instructionFile: instructionName });
-    }
-  }
-
-  return targets;
-}
-
-async function confirm(prompt, question) {
-  return confirmAnswer(await prompt.ask(question));
-}
-
-async function confirmDefaultYes(prompt, question) {
-  return isDefaultYes(await prompt.ask(question));
-}
-
-function isDefaultYes(answer) {
-  const normalized = answer.trim().toLowerCase();
-  return normalized === "" || ["y", "yes"].includes(normalized);
-}
-
-function confirmAnswer(answer) {
-  return ["y", "yes"].includes(answer.trim().toLowerCase());
-}
-
-function createPrompt() {
-  const rl = createInterface({ input: stdin, output: stdout });
-  const queue = [];
-  const waiters = [];
-  let closed = false;
-
-  rl.on("line", (line) => {
-    if (waiters.length > 0) {
-      waiters.shift()(line);
-    } else {
-      queue.push(line);
-    }
-  });
-
-  rl.on("close", () => {
-    closed = true;
-    while (waiters.length > 0) {
-      waiters.shift()("");
-    }
-  });
-
-  return {
-    async ask(question) {
-      stdout.write(question);
-      if (queue.length > 0) {
-        return queue.shift();
-      }
-      if (closed) {
-        return "";
-      }
-      return new Promise((resolve) => waiters.push(resolve));
-    },
-    close() {
-      rl.close();
-    },
-  };
+  return [...new Set(selected)];
 }
 
 function printHelp(version) {

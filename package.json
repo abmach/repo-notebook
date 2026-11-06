@@ -1,6 +1,6 @@
 {
   "name": "repo-notebook",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Agent Skills and a consent-aware installer for durable project context, decisions, principles, and collaborative scoping.",
   "type": "module",
   "bin": {
@@ -40,5 +40,8 @@
   },
   "author": "Arthur Biazon Machado",
   "license": "MIT",
-  "homepage": "https://gitlab.com/abmach/repo-notebook#readme"
+  "homepage": "https://gitlab.com/abmach/repo-notebook#readme",
+  "dependencies": {
+    "@inquirer/prompts": "^8.7.5"
+  }
 }

@@ -21,10 +21,10 @@ stages:
 
 validate:
   stage: validate
-  image: node:24
+  image: oven/bun:1.4.4
   script:
     - npm install -g npm@11
-    - npm run validate
+    - bun run validate
 
 stage-npm:
   stage: publish

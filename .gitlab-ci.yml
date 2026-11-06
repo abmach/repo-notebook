@@ -1,0 +1,67 @@
+# Canonical npm staged-publish pipeline for abmach projects.
+# Generated from the new-project skill — regenerate rather than hand-edit.
+#
+# One-time setup on npmjs.com -> package settings -> Trusted publishing:
+#   Provider:     GitLab CI/CD
+#   Namespace:    abmach
+#   Project:      repo-notebook          # this repo's GitLab path basename
+#   CI file path: .gitlab-ci.yml
+#   Environment:  (empty — or add `environment: name: <value>` to the job)
+#   Allowed:      stage publish only (keep direct publish off)
+# A new trusted-publisher config expires unless a real stage completes
+# within 2 days of creation.
+#
+# Release flow: bump version + CHANGELOG, commit, tag vX.Y.Z, push tag.
+# The staged package then waits for maintainer review + 2FA approval:
+#   npm stage list && npm stage approve <stage-id>
+
+stages:
+  - validate
+  - publish
+
+validate:
+  stage: validate
+  image: node:24
+  script:
+    - npm install -g npm@11
+    - npm run validate
+
+stage-npm:
+  stage: publish
+  image: node:24
+  id_tokens:
+    NPM_ID_TOKEN:
+      aud: "npm:registry.npmjs.org"
+    SIGSTORE_ID_TOKEN:
+      aud: sigstore
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+  script:
+    # staged publishing requires npm CLI >= 11.15 / Node >= 22.14;
+    # node:24 bundles an older npm, so upgrade explicitly
+    - npm install -g npm@11
+    # graceful skip: tags from before the package existed
+    - |
+      if [ ! -f package.json ]; then
+        echo "No package.json at $CI_COMMIT_TAG — skipping."
+        exit 0
+      fi
+    # gate: the tag must match package.json's version
+    - |
+      PKG_NAME=$(node -p "require('./package.json').name")
+      PKG_VERSION=$(node -p "require('./package.json').version")
+      if [ "v$PKG_VERSION" != "$CI_COMMIT_TAG" ]; then
+        echo "Tag $CI_COMMIT_TAG does not match package.json version v$PKG_VERSION" >&2
+        exit 1
+      fi
+    # graceful skip: re-pushed / already-published versions (npm versions are immutable)
+    - |
+      if npm view "${PKG_NAME}@${CI_COMMIT_TAG#v}" version >/dev/null 2>&1; then
+        echo "$CI_COMMIT_TAG is already on the registry — skipping staging."
+        exit 0
+      fi
+    # log what will ship; no publish
+    - npm publish --dry-run
+    # INSERT PROJECT BUILD STEPS HERE (if the package needs a build)
+    - npm stage publish --provenance --access public
+    - 'echo "Staged $CI_COMMIT_TAG — a maintainer must now approve it: npm stage list && npm stage approve <stage-id> (2FA)."'

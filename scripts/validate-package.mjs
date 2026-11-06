@@ -58,6 +58,7 @@ async function resolveCli(entrypoint) {
     candidates.push(process.env.npm_execpath);
   }
   candidates.push(path.join(path.dirname(process.execPath), "node_modules", "npm", "bin", entrypoint));
+  candidates.push(path.join(path.dirname(process.execPath), "..", "lib", "node_modules", "npm", "bin", entrypoint));
 
   for (const candidate of candidates) {
     if (path.basename(candidate) !== entrypoint) {

@@ -45,17 +45,17 @@ try {
     process.exit(0);
   }
 
-  const createNotebookDirectory = explicitPlan?.notebook ?? await confirm(
+  const createNotebookDirectory = explicitPlan?.notebook ?? await confirmDefaultYes(
     prompt,
     inspection.notebookExists
-      ? `Create or refresh the ${notebookDirectory} templates? Existing files will be preserved. [y/N] `
-      : `Create ${notebookDirectory} with starter records? [y/N] `,
+      ? `Create or refresh the ${notebookDirectory} templates? Existing files will be preserved. [Y/n] `
+      : `Create ${notebookDirectory} with starter records? [Y/n] `,
   );
 
   const instructionTargets = explicitPlan?.instructions ?? await selectInstructionTargets(selectedLocations, inspection, prompt);
 
   if (!explicitPlan) {
-    const confirmed = await confirm(prompt, "Install Repo Notebook with these choices? [y/N] ");
+    const confirmed = await confirmDefaultYes(prompt, "Install Repo Notebook with these choices? [Y/n] ");
     if (!confirmed) {
       console.log("Installation cancelled. Nothing was installed.");
       process.exit(0);
@@ -184,9 +184,9 @@ async function selectInstructionTargets(locations, project, prompt) {
     const answer = await prompt.ask(
       `Add the always-on Repo Notebook instruction to ${instructionName}?${
         existing?.instructionExists ? " The existing file will be preserved." : ""
-      } [y/N] `,
+      } [Y/n] `,
     );
-    if (confirmAnswer(answer)) {
+    if (isDefaultYes(answer)) {
       targets.push({ instructionFile: instructionName });
     }
   }
@@ -196,6 +196,15 @@ async function selectInstructionTargets(locations, project, prompt) {
 
 async function confirm(prompt, question) {
   return confirmAnswer(await prompt.ask(question));
+}
+
+async function confirmDefaultYes(prompt, question) {
+  return isDefaultYes(await prompt.ask(question));
+}
+
+function isDefaultYes(answer) {
+  const normalized = answer.trim().toLowerCase();
+  return normalized === "" || ["y", "yes"].includes(normalized);
 }
 
 function confirmAnswer(answer) {

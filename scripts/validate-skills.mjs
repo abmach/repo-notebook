@@ -38,6 +38,8 @@ async function resolveCli(entrypoint) {
   }
   candidates.push(path.join(path.dirname(process.execPath), "node_modules", "npm", "bin", entrypoint));
   candidates.push(path.join(path.dirname(process.execPath), "..", "lib", "node_modules", "npm", "bin", entrypoint));
+  candidates.push(path.join("D:\\Tools\\active\\nodejs", "node_modules", "npm", "bin", entrypoint));
+  candidates.push(path.join("/usr/local/lib/node_modules/npm/bin", entrypoint));
 
 
   for (const candidate of candidates) {

@@ -6,7 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-Changes after the latest release are compared from [`v0.1.0`](https://gitlab.com/abmach/repo-notebook/-/tree/v0.1.0).
+Changes after the latest release are compared from [`v0.1.1`](https://gitlab.com/abmach/repo-notebook/-/tree/v0.1.1).
+
+## [0.1.1] - 2026-11-06
+
+### Changed
+
+- Installer defaults are now adoption-first: notebook creation, always-read instruction installation, and final confirmation default to yes.
+- Validation and tests now run from Bun while keeping npm for registry operations.
+
 
 ## [0.1.0] - 2026-11-06
 

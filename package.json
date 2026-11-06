@@ -1,6 +1,6 @@
 {
   "name": "repo-notebook",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Agent Skills and a consent-aware installer for durable project context, decisions, principles, and collaborative scoping.",
   "type": "module",
   "bin": {
@@ -26,10 +26,10 @@
     "project-context"
   ],
   "scripts": {
-    "validate": "npm run validate:skills && npm run validate:package && npm test",
-    "validate:skills": "node scripts/validate-skills.mjs",
-    "validate:package": "node scripts/validate-package.mjs",
-    "test": "node --test"
+    "validate": "bun run validate:skills && bun run validate:package && bun run test",
+    "validate:skills": "bun scripts/validate-skills.mjs",
+    "validate:package": "bun scripts/validate-package.mjs",
+    "test": "bun test"
   },
   "repository": {
     "type": "git",

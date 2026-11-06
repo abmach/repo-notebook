@@ -7,14 +7,9 @@ const packageJson = JSON.parse(await readFile(path.join(root, "package.json"), "
 const npmCli = await resolveCli("npm-cli.js");
 const result = spawnSync(
   process.execPath,
-  [npmCli, "publish", "--dry-run", "--json"],
+  [npmCli, "pack", "--dry-run", "--json"],
   { cwd: root, encoding: "utf8" },
 );
-
-if (result.error) {
-  console.error(result.error.message);
-  process.exit(1);
-}
 if (result.status !== 0) {
   process.stderr.write(result.stderr ?? "");
   process.stdout.write(result.stdout ?? "");
@@ -22,7 +17,11 @@ if (result.status !== 0) {
 }
 
 const payload = JSON.parse(result.stdout);
-const metadata = payload[packageJson.name];
+const metadata = Array.isArray(payload) ? payload[0] : payload[packageJson.name];
+if (!metadata?.files) {
+  console.error(`Unexpected npm pack output: ${result.stdout}`);
+  process.exit(1);
+}
 const files = metadata.files.map((file) => file.path.replaceAll("\\", "/"));
 const expected = [
   "README.md",
@@ -59,6 +58,8 @@ async function resolveCli(entrypoint) {
   }
   candidates.push(path.join(path.dirname(process.execPath), "node_modules", "npm", "bin", entrypoint));
   candidates.push(path.join(path.dirname(process.execPath), "..", "lib", "node_modules", "npm", "bin", entrypoint));
+  candidates.push(path.join("D:\\Tools\\active\\nodejs", "node_modules", "npm", "bin", entrypoint));
+  candidates.push(path.join("/usr/local/lib/node_modules/npm/bin", entrypoint));
 
   for (const candidate of candidates) {
     if (path.basename(candidate) !== entrypoint) {

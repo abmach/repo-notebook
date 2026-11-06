@@ -23,7 +23,6 @@ validate:
   stage: validate
   image: oven/bun:1.4.4
   script:
-    - npm install -g npm@11
     - bun run validate
 
 stage-npm:

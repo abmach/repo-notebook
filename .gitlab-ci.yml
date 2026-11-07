@@ -25,6 +25,7 @@ validate:
   script:
     - npm install -g npm@11
     - npm install -g bun
+    - bun install --frozen-lockfile
     - bun run validate
 
 stage-npm:

@@ -4,6 +4,13 @@ All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2026-11-07
+
+### Fixed
+
+- Removed the inaccurate `q`/Esc cancel-key advertising; TTY prompts advertise Ctrl+C only (the actual Inquirer exit key), and the fallback prompts were restored to the original `[Y/n]` / `[none]` text.
+- CI validation now runs `bun install --frozen-lockfile` before `bun run validate`, so the `@inquirer/prompts` regression test can resolve the dependency on GitLab runners.
+
 ## [0.2.1] - 2026-11-07
 
 ### Fixed
@@ -36,7 +43,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Project notebook templates for context, glossary, principles, decisions, current behavior, technical choices, and transient Change Briefs.
 - Automated skill, package-contract, and installer validation.
 
-[Unreleased]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.2.1...HEAD
+[Unreleased]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.2.2...HEAD
+[0.2.2]: https://gitlab.com/abmach/repo-notebook/-/tree/v0.2.2
 [0.2.1]: https://gitlab.com/abmach/repo-notebook/-/tree/v0.2.1
 [0.2.0]: https://gitlab.com/abmach/repo-notebook/-/tree/v0.2.0
-[0.1.0]: https://gitlab.com/abmach/repo-notebook/-/tree/v0.1.0

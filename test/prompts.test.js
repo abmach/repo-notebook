@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
+
 import {
   buildInstructionChoices,
   buildLocationChoices,
@@ -8,7 +10,25 @@ import {
   formatInstallResult,
 } from "../lib/prompts.js";
 
-test("buildLocationChoices preselects locations with an existing instruction file", () => {
+test("every @inquirer/prompts name destructured in lib/prompts.js is a real export", async () => {
+  const source = await readFile("lib/prompts.js", "utf8");
+  const destructured = new Set();
+  for (const match of source.matchAll(/const \{([^}]+)\}[^;]*?await load\(\)/g)) {
+    for (const part of match[1].split(",")) {
+      const name = part.trim().split(":")[0].trim();
+      if (name) destructured.add(name);
+    }
+  }
+
+  assert.ok(destructured.size > 0, "expected at least one destructured prompt");
+
+  const inquirer = await import("@inquirer/prompts");
+  for (const name of destructured) {
+    assert.equal(typeof inquirer[name], "function", `expected @inquirer/prompts.${name} to be a function`);
+  }
+});
+
+test("buildLocationChoices starts with nothing selected", () => {
   const choices = buildLocationChoices({
     locations: [
       { path: ".agents", instructionName: "AGENTS.md", instructionExists: true, skillsExist: false },
@@ -16,12 +36,12 @@ test("buildLocationChoices preselects locations with an existing instruction fil
     ],
   });
 
-  assert.equal(choices[0].checked, true);
+  assert.equal(choices[0].checked, false);
   assert.equal(choices[1].checked, false);
   assert.match(choices[0].name, /\.agents/);
 });
 
-test("buildLocationChoices preselects locations with already-installed skills", () => {
+test("buildLocationChoices never preselects, even when skills already exist", () => {
   const choices = buildLocationChoices({
     locations: [
       { path: ".agents", instructionName: "AGENTS.md", instructionExists: false, skillsExist: true },
@@ -29,12 +49,13 @@ test("buildLocationChoices preselects locations with already-installed skills", 
     ],
   });
 
-  assert.equal(choices[0].checked, true);
+  assert.equal(choices[0].checked, false);
+  assert.equal(choices[1].checked, false);
 });
 
 
 
-test("buildLocationChoices checks the first entry when nothing else matches", () => {
+test("buildLocationChoices returns no preselection when nothing exists yet", () => {
   const choices = buildLocationChoices({
     locations: [
       { path: ".agents", instructionName: "AGENTS.md", instructionExists: false, skillsExist: false },
@@ -42,7 +63,7 @@ test("buildLocationChoices checks the first entry when nothing else matches", ()
     ],
   });
 
-  assert.equal(choices[0].checked, true);
+  assert.equal(choices.some((choice) => choice.checked), false);
 });
 
 

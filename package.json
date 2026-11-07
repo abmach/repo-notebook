@@ -1,6 +1,6 @@
 {
   "name": "repo-notebook",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Agent Skills and a consent-aware installer for durable project context, decisions, principles, and collaborative scoping.",
   "type": "module",
   "bin": {

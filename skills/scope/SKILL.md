@@ -34,9 +34,15 @@ Do not use scope work for a straightforward, well-bounded change whose answers a
 
 Store a Change Brief in `.repo-notebook/work/` while the work is being shaped or implemented. Use a descriptive kebab-case filename, for example `add-user-imports.md`.
 
+Maintain one canonical brief per logical change. Before creating or writing a brief, inspect `.repo-notebook/work/` for a brief describing the same change and update it in place. Create a separate brief only for a distinct change. Never overwrite an existing brief; if a filename collides with distinct work, choose a distinct kebab-case filename.
+
 Follow [the Change Brief format](references/change-brief.md). A brief is transient working context, not a milestone plan or an execution registry.
 
-Treat `work/` as versioned by default and do not add it wholesale to `.gitignore`. Commit a brief only when the scope needs to remain available to teammates, future sessions, or other agents while the work is active; ignore a specific brief only when it is intentionally private or local.
+Update the canonical brief whenever a material scope, assumption, acceptance, change-point, or decision changes. Keep `Acceptance` synchronized with the agreed behavior. Do not rely on the conversation or an earlier revision as the current brief.
+
+Treat a brief as active while its file remains in `.repo-notebook/work/`. It is terminal only through explicit settlement or cancellation. For cancelled or superseded work, propose any still-durable consequences and the removal of the obsolete brief together. Remove it only after the developer explicitly approves that removal; otherwise keep it as active guidance.
+
+Treat `work/` as tracked by default, but do not add it wholesale to `.gitignore`. Commit a brief only when it must remain available across sessions or to other agents and the developer explicitly consents to that commit. Ignore a specific brief only when it is intentionally private or local; before sharing that work, remove its ignore rule and ask the developer to commit the required brief.
 
 ## Define change points
 
@@ -55,17 +61,21 @@ For each change point, identify the affected area and the expected consequence. 
 
 ## Settle the work
 
-When the developer considers the scope settled:
+"Scope agreed" ends clarification but does not settle the work. Settle only after the implementation is complete and every acceptance condition has been checked against the implemented behavior and passes.
 
-1. Promote durable consequences into the appropriate records through the `capture` skill:
-   - terms and relationships → glossary or context;
+1. Resolve each open question, or explicitly mark it irrelevant to the final scope. Any unresolved question that could affect implementation blocks settlement.
+2. Resolve or remove every assumption before settlement.
+3. Promote durable consequences into the appropriate records through the `capture` skill:
+   - project vocabulary → glossary;
+   - purpose, scope boundaries, and domain relationships → context;
    - enduring constraints → principles;
    - choices that should affect future work → decisions;
    - shipped capabilities and contracts → system behavior;
    - current technical choices → stack.
-2. Ensure the brief contains no unique durable rationale that was not promoted.
-3. Remove the settled brief from `.repo-notebook/work/`.
-4. Do not create a settled-work archive. If the brief was committed, Git history preserves it.
+4. Ensure the brief contains no unique durable rationale that was not promoted.
+5. Remove the brief only after every proposed durable update has been applied and written successfully. If an update is skipped or pending, keep the brief and state what remains.
+6. Remove only the exact settled brief file from `.repo-notebook/work/`, but keep the `work/` directory.
+7. Do not create a settled-work archive. If the brief was committed, Git history preserves it.
 
 ## Boundaries
 

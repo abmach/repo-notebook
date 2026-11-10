@@ -15,7 +15,7 @@ For this repository, GitLab is the canonical source and GitHub is a read-only di
 - **Context** — consult durable project truth before work and reconcile verified behavior afterward.
 - **Scope** — collaborate with the developer on purpose, boundaries, change points, and acceptance for features and bug fixes.
 - **Capture** — register confirmed terms, principles, decisions, behavior, and technical choices.
-- **Bootstrap** — analyze an existing repository and propose an initial notebook with developer confirmation.
+- **Bootstrap** — analyze an existing repository and propose an initial notebook with developer confirmation; refreshes preserve existing notebook paths unless deletion is explicitly approved.
 - **Thin installer** — install the skills into supported harness locations with explicit consent.
 
 ## Install
@@ -34,14 +34,20 @@ The installer:
 
 1. finds the Git repository root;
 2. in a terminal, offers an arrow-key multiselect of the supported harness
-   locations (`.agents`, `.claude`, `.omp`, `.opencode`) with locations whose
-   instruction file already exists preselected;
+   locations (`.agents`, `.claude`, `.omp`, `.opencode`) with no location
+   preselected;
 3. asks (with an explicit default) before creating `.repo-notebook/`;
 4. asks (checkbox, all preselected) before adding or updating the
    always-read instruction file (`AGENTS.md` or `CLAUDE.md`);
 5. shows a summary and asks for final confirmation before installing the
    skills and recording the installed version in
    `.repo-notebook-install.json`.
+
+Re-running the installer records packaged skill-file hashes in
+`.repo-notebook-install.json`. When the packaged version changes, an installed
+file is replaced only if it still matches the previously packaged hash;
+locally modified files are preserved and reported. Use the explicit
+`--replace-skills` option to replace differing files deliberately.
 
 With piped stdin/stdout (CI, scripts, tests) the interactive prompts fall
 back to the original line-based questions with identical text and meaning,

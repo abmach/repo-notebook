@@ -84,7 +84,11 @@ date: YYYY-MM-DD
 - <Positive or negative consequence>
 ```
 
-Number sequentially. Use `status: proposed`, `accepted`, `deprecated`, or `superseded`. A superseded record must identify its replacement.
+Before creating a decision, list all existing decision IDs and allocate the next unused sequential ID using the existing padding width. Never reuse an ID, including IDs of deprecated or superseded records. The `id` field and filename prefix must match exactly. If that filename exists, allocate a different ID or slug rather than overwrite it.
+
+Use `status: proposed`, `accepted`, `deprecated`, or `superseded`. `accepted` is the only authoritative decision status. `proposed` is non-binding and must not be cited as established project guidance. `deprecated` means no longer recommended and not replaced. `superseded` means replaced by another accepted decision and requires `superseded_by: NNNN` in the front matter.
+
+If evidence does not support a required decision section, write `Not recorded` rather than inventing content or omitting the section. Do not fabricate alternatives. An inference may be included only when explicitly labeled as an inference and does not substitute for missing evidence.
 
 `significance: architectural` is appropriate when the choice shapes system boundaries, major dependencies, data ownership, or long-lived direction. Other future-relevant choices use `significance: durable`.
 
@@ -121,3 +125,7 @@ Describe current capabilities and contracts, not implementation detail or ration
 ```
 
 Record current truth. Put the reason for a consequential choice in `decisions/`.
+
+## Index
+
+`.repo-notebook/index.md` is a directory-level map, not a second index of record contents. Include one link and a one-line purpose for each existing top-level durable artifact and `work/`; represent decisions through `decisions/` rather than individual decisions. Update it when a mapped path or purpose is missing or stale. Ordinary content changes do not require an index change unless the existing one-line purpose becomes inaccurate.

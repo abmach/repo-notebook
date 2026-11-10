@@ -64,8 +64,16 @@ try {
 
   const stopSpinner = ui.startSpinner("Installing…");
   try {
+    const preservedSkillFiles = [];
+    const replacedSkillFiles = [];
+    const skillHashes = {};
     for (const location of selectedLocations) {
-      await installSkills(root, location, packageData);
+      const result = await installSkills(root, location, packageData, {
+        replaceExisting: explicitPlan?.replaceSkills === true,
+      });
+      preservedSkillFiles.push(...result.preserved);
+      replacedSkillFiles.push(...result.replaced);
+      skillHashes[location] = result.hashes;
     }
 
     let notebookCreated = false;
@@ -86,9 +94,16 @@ try {
       selectedLocations,
       notebookCreated,
       [...new Set(instructionFiles)],
+      skillHashes,
     );
 
-    console.log(`\n${formatInstallResult(selectedLocations, notebookCreated, instructionFiles)}`);
+    console.log(`\n${formatInstallResult(
+      selectedLocations,
+      notebookCreated,
+      instructionFiles,
+      preservedSkillFiles,
+      replacedSkillFiles,
+    )}`);
   } finally {
     stopSpinner();
   }
@@ -104,6 +119,7 @@ function parseExplicitOptions(options) {
   const locations = [];
   const instructions = [];
   let notebook = false;
+  let replaceSkills = false;
 
   for (let index = 0; index < options.length; index += 1) {
     const option = options[index];
@@ -121,6 +137,8 @@ function parseExplicitOptions(options) {
         throw new Error(`Unsupported instruction file: ${value}`);
       }
       instructions.push({ instructionFile: value });
+    } else if (option === "--replace-skills") {
+      replaceSkills = true;
     } else {
       throw new Error(`Unknown option: ${option}`);
     }
@@ -133,6 +151,7 @@ function parseExplicitOptions(options) {
   return {
     locations: [...new Set(locations)],
     notebook,
+    replaceSkills,
     instructions: [...new Map(instructions.map((target) => [target.instructionFile, target])).values()],
   };
 }
@@ -184,6 +203,8 @@ function printHelp(version) {
   console.log("\nUsage:");
   console.log("  repo-notebook init");
   console.log("  repo-notebook init --location .agents --notebook --instruction AGENTS.md");
+  console.log("  repo-notebook init --location .agents --replace-skills");
   console.log("\nInstalls Repo Notebook skills into selected harness locations.");
+  console.log("--replace-skills explicitly replaces differing installed skill files.");
   console.log("Interactive mode asks before creating notebook files or modifying instruction files.");
 }

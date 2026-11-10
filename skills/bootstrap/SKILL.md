@@ -31,6 +31,8 @@ Do not seed generic technology preferences, testing doctrine, or design doctrine
 
 ## Confirm candidates in batches
 
+Before proposing, read `.repo-notebook/index.md` and every existing record that could cover a candidate. Search by project concept, not only by the proposed filename, and identify the exact existing entry to amend or state that no equivalent entry exists. Do not propose a duplicate when an existing record owns the fact.
+
 Present candidates with evidence and a concrete destination. Use these options:
 
 - **apply as proposed**;
@@ -38,26 +40,32 @@ Present candidates with evidence and a concrete destination. Use these options:
 - **skip**;
 - **skip the remaining candidates** for that artifact.
 
-Prefer the developer's exact wording. Mark inferred rationale as inferred. Never write an unconfirmed candidate.
+Then wait for the developer's response. **Apply as proposed** approves exactly the displayed proposal; **edit** requires revised wording to be displayed and approved; **skip** changes nothing. Prefer the developer's exact wording. Mark inferred rationale as inferred. Never write, overwrite, amend, or delete an unconfirmed candidate.
 
 ## Create the notebook
 
 After confirmation:
 
-1. Create `.repo-notebook/` only for confirmed artifacts.
-2. Use the formats defined by the `capture` skill.
-3. Create `.repo-notebook/index.md` as a compact map of the confirmed records.
+1. Create missing artifacts for confirmed candidates and apply only the confirmed amendments to existing artifacts.
+2. Use the formats defined by the `capture` skill, including its one-owner-per-fact and amendment rules.
+3. Create or update `.repo-notebook/index.md` only as needed to map the confirmed records accurately.
 4. Do not create empty `work/` or `decisions/` directories unless confirmed content requires them.
-5. Report what was created, what was skipped, and any unresolved disagreement.
+5. Preserve every pre-existing notebook file and directory unless the developer explicitly approves deleting that exact path.
+6. Treat dependent edits—such as a decision, an affected current-truth artifact, and an index correction—as one atomic proposal: apply all or none.
+7. Report what was created, what was skipped, what was preserved, and any unresolved disagreement.
+
+Skipping a candidate means leaving the existing path unchanged, not deleting it. An empty or placeholder file is still an existing path. For example, do not delete `glossary.md` merely because no glossary candidate was confirmed.
 
 ## Refresh safely
 
 If `.repo-notebook/` already exists:
 
-1. Read it before scanning.
-2. Identify missing, contradictory, or stale content.
-3. Propose additions or amendments with evidence.
-4. Do not overwrite confirmed records without explicit developer approval.
+1. Inventory the existing notebook paths and read them before scanning.
+2. Identify missing, contradictory, or stale content. Treat **empty** as a content state, not as permission to delete a path.
+3. Propose additions or amendments with evidence and show the exact resulting entry or path.
+4. Do not overwrite, amend, or delete confirmed records without explicit developer approval of the displayed proposal.
+5. Do not delete an existing record or directory during discovery or refresh. Deletion requires a separate explicit proposal that names the exact path and reason, followed by explicit developer approval.
+6. Do not settle or remove transient Change Briefs during bootstrap. Use the `scope` and `capture` skills for that workflow; preserve `work/` and its briefs here.
 
 ## Boundaries
 
@@ -65,3 +73,4 @@ If `.repo-notebook/` already exists:
 - Do not create milestones, plans, issues, or execution state.
 - Do not assume an external tracker platform.
 - Do not create empty records merely to complete the taxonomy.
+- Do not delete or rename pre-existing notebook paths because they are empty, skipped, placeholder-only, or not part of the proposed refresh.

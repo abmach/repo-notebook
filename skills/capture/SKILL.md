@@ -12,11 +12,14 @@ Record only knowledge that should influence future work. Keep curated truth comp
 
 | Knowledge | Destination |
 | --- | --- |
-| Canonical term, discouraged alias, scope, relationship | `.repo-notebook/glossary.md` or `context.md` |
-| Enduring rule that constrains future work | `.repo-notebook/principles.md` |
-| Choice that should affect future work | `.repo-notebook/decisions/NNNN-<slug>.md` |
-| Current shipped capability or contract | `.repo-notebook/system.md` |
-| Current runtime, framework, persistence, or architecture choice | `.repo-notebook/stack.md` |
+| Project vocabulary and discouraged aliases | `.repo-notebook/glossary.md` |
+| Project purpose, scope boundaries, and domain-level relationships | `.repo-notebook/context.md` |
+| Normative enduring constraints | `.repo-notebook/principles.md` |
+| Durable choices, rationale, and history | `.repo-notebook/decisions/NNNN-<slug>.md` |
+| Observable shipped capabilities and contracts | `.repo-notebook/system.md` |
+| Current runtime, framework, persistence, versions, and technical topology | `.repo-notebook/stack.md` |
+
+Use one canonical owner for each fact. Do not copy the same fact into multiple artifacts. A decision retains the historical outcome and rationale; a current-truth artifact states the present outcome. When both reflect the same choice, propose both updates together so they cannot disagree.
 
 Do not create an issue record. External issue state belongs to the external tracker and may be accessed through whatever tools the harness provides.
 
@@ -34,15 +37,29 @@ Capture a record only when at least one condition applies:
 
 Do not persist an ephemeral implementation choice. Leave it in code, tests, a transient Change Brief, Git history, or the external tracker.
 
+## Inspect existing records
+
+Before proposing an update:
+
+1. Read `.repo-notebook/index.md` and every existing record that could cover the fact.
+2. Search by the project concept, not only by the proposed filename.
+3. Identify the exact existing entry to amend, or state that no equivalent entry was found.
+4. Maintain one canonical glossary entry, one rule, and one current behavior or technical choice per subject. Amend the identified entry instead of appending a duplicate.
+5. Maintain one current accepted decision per choice. When a choice changes, supersede the previous decision rather than rewriting its historical outcome.
+
 ## Confirm before writing
 
 For every proposed update:
 
 1. State the evidence: the developer statement, prompt, code, diff, verification result, or history that supports it.
 2. Name the target record and show the proposed addition or replacement.
-3. Offer **apply**, **edit**, or **skip**.
-4. Preserve the developer's wording when they supply it.
-5. Amend or supersede old records explicitly; do not leave contradictory guidance.
+3. Offer **apply**, **edit**, or **skip**, then wait for the developer's response.
+4. Treat **apply** as approval of exactly the displayed proposal, **edit** as a request to revise it, and **skip** as no change.
+5. For **edit**, use the developer's wording, display the revised proposal, and obtain approval before writing it.
+6. Preserve the developer's wording when they supply it.
+7. Treat dependent edits—such as a decision, an affected current-truth artifact, and an index correction—as one atomic proposal: apply all or none.
+
+Do not write or delete any notebook record until the developer explicitly approves the displayed proposal. A request to "remember" a fact starts this workflow but does not approve unseen wording.
 
 ## Follow artifact rules
 
@@ -51,18 +68,24 @@ Read [the artifact formats](references/artifact-formats.md) before writing.
 - Keep glossary definitions short and prefer one canonical term over several synonyms.
 - Keep principles load-bearing. Include rationale and provenance so future agents understand the rule.
 - Create a durable decision only when it should affect future work. Use `significance: durable` or `architectural`; do not create both a decision log and a parallel ADR system.
-- Keep `system.md` in the present tense and rewrite affected behavior in place.
+- For glossary, principles, context, system, and stack, an amendment replaces the identified existing entry and removes its conflicting old wording.
+- Do not rewrite the outcome or rationale of an `accepted` decision to represent a later choice. Create the next decision, mark the old record superseded with `superseded_by`, and update every affected current-truth artifact in the same proposal.
+- Keep `system.md` in the present tense. Amend only the affected behavior in place; preserve unrelated entries.
 - Keep `stack.md` as current truth. Put the reason for a consequential choice in `decisions/`.
-- Update `.repo-notebook/index.md` only when its map becomes inaccurate.
+- Update `.repo-notebook/index.md` only when its map becomes inaccurate, and include any required index correction in the confirmed proposal.
 
 ## Reconcile a settled Change Brief
 
-When a brief is settled:
+Only the developer may mark a brief settled, and only after the implementation is complete and its acceptance conditions have been verified.
 
 1. Identify its durable consequences.
-2. Capture only those consequences.
-3. Ensure no unique rationale remains only in the brief.
-4. Remove the brief from `.repo-notebook/work/`.
+2. Propose only those consequences and the brief removal together.
+3. Delete the brief only after every approved consequence update has been written successfully.
+4. If a skipped or deferred consequence has unique durable rationale in the brief, keep the brief unless the developer explicitly approves discarding that rationale.
+5. Ensure no unique **durable** rationale remains only in the brief. Promote rationale only when it explains a durable choice; ephemeral implementation rationale may be discarded with the brief.
+6. Remove only the settled brief file from `.repo-notebook/work/`, but keep the `work/` directory.
+
+During brief reconciliation, write `system.md` only when evidence shows the capability or contract is present in the shipped product. Write `stack.md` only when the technical choice is already current in the repository or runtime. Accepted scope alone is not evidence of shipped behavior.
 
 Do not create a settled-work archive.
 

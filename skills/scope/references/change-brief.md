@@ -25,6 +25,10 @@ Why this change exists and the outcome it should produce.
 
 - <observable condition that establishes completion>
 
+## Assumptions
+
+- <unconfirmed assumption, or omit this section when empty>
+
 ## Open questions
 
 - <unresolved question, or "None">
@@ -40,8 +44,12 @@ Why this change exists and the outcome it should produce.
 
 ## Rules
 
-- Use only sections that carry useful information; omit `Non-goals`, `Open questions`, or `Decisions` when empty and not yet needed.
+- Use only sections that carry useful information; omit `Non-goals`, `Assumptions`, `Open questions`, or `Decisions` when empty and not yet needed.
+- Put only unconfirmed assumptions in `Assumptions`; do not state them as agreed scope. Resolve or remove every assumption before settlement.
 - State acceptance as observable outcomes, not implementation steps.
+- Keep acceptance synchronized with the agreed behavior whenever scope changes.
 - Record change points, not tasks.
 - Keep implementation detail in the repository and current task, not in the brief.
+- Record a durable decision here only as a link to its canonical decision record once captured; do not maintain a second copy.
+- `Outcome` is settlement-only. Omit it while the brief is active and write it only after acceptance passes, immediately before applying the promotion and removal steps.
 - Keep the brief transient. When work settles, promote durable consequences and remove the brief.

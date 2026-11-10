@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { access, mkdtemp, readFile, rm } from "node:fs/promises";
+import { access, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -49,6 +49,61 @@ test("interactive init installs nothing when installation is declined", async ()
     await assertMissing(path.join(root, ".agents"));
     await assertMissing(path.join(root, ".repo-notebook"));
     await assertMissing(path.join(root, ".repo-notebook-install.json"));
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("rerunning init preserves differing installed skill files", async () => {
+  const root = await createTempRepository();
+  try {
+    const first = spawnSync(process.execPath, [cli, "init", "--location", ".agents"], {
+      cwd: root,
+      encoding: "utf8",
+      timeout: 30_000,
+    });
+    assert.equal(first.status, 0, first.stderr);
+
+    const customized = path.join(root, ".agents", "skills", "bootstrap", "SKILL.md");
+    const customContent = "# Local customization\n";
+    await writeFile(customized, customContent);
+
+    const second = spawnSync(process.execPath, [cli, "init", "--location", ".agents"], {
+      cwd: root,
+      encoding: "utf8",
+      timeout: 30_000,
+    });
+    assert.equal(second.status, 0, second.stderr);
+    assert.equal(await readFile(customized, "utf8"), customContent);
+    assert.match(second.stdout, /Preserved existing differing skill files:/);
+    assert.match(second.stdout, /\.agents\/skills\/bootstrap\/SKILL\.md/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("explicit --replace-skills replaces a customized installed skill file", async () => {
+  const root = await createTempRepository();
+  try {
+    const first = spawnSync(process.execPath, [cli, "init", "--location", ".agents"], {
+      cwd: root,
+      encoding: "utf8",
+      timeout: 30_000,
+    });
+    assert.equal(first.status, 0, first.stderr);
+
+    const customized = path.join(root, ".agents", "skills", "bootstrap", "SKILL.md");
+    await writeFile(customized, "# Local customization\n");
+
+    const second = spawnSync(
+      process.execPath,
+      [cli, "init", "--location", ".agents", "--replace-skills"],
+      { cwd: root, encoding: "utf8", timeout: 30_000 },
+    );
+    assert.equal(second.status, 0, second.stderr);
+    assert.match(await readFile(customized, "utf8"), /# Bootstrap the notebook/);
+    assert.match(second.stdout, /Replaced packaged skill files:/);
+    assert.match(second.stdout, /\.agents\/skills\/bootstrap\/SKILL\.md/);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-11-13
+
+### Added
+
+- Prompt-stream tests drive the real `@inquirer/prompts` `checkbox`/`confirm` through `@inquirer/testing` with scripted keystrokes, so the TTY adapter's selection logic is verified deterministically without a terminal. `createUi` accepts an injected `prompts` module for this.
+
+
 ## [0.5.1] - 2026-11-13
 
 ### Fixed
@@ -92,7 +99,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Project notebook templates for context, glossary, principles, decisions, current behavior, technical choices, and transient Change Briefs.
 - Automated skill, package-contract, and installer validation.
 
-[Unreleased]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.5.1...HEAD
+[Unreleased]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.5.2...HEAD
+[0.5.2]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.5.1...v0.5.2
 [0.5.1]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.5.0...v0.5.1
 [0.5.0]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.4.0...v0.5.0
 [0.4.0]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.3.0...v0.4.0

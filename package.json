@@ -1,6 +1,6 @@
 {
   "name": "repo-notebook",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Agent Skills and a consent-aware installer for durable project context, decisions, principles, and collaborative scoping.",
   "type": "module",
   "bin": {
@@ -43,5 +43,8 @@
   "homepage": "https://gitlab.com/abmach/repo-notebook#readme",
   "dependencies": {
     "@inquirer/prompts": "^8.7.5"
+  },
+  "devDependencies": {
+    "@inquirer/testing": "^3.4.0"
   }
 }

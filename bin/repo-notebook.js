@@ -17,6 +17,8 @@ import {
   createUi,
   formatInstallResult,
 } from "../lib/prompts.js";
+import { checkNotebook, summarize, fixMechanical } from "../lib/checker.js";
+import path from "node:path";
 
 const args = process.argv.slice(2);
 const packageData = await loadPackageData();
@@ -26,8 +28,10 @@ if (args.includes("--help") || args.includes("-h")) {
   process.exit(0);
 }
 
-if (args[0] !== "init") {
-  console.error(`Usage: repo-notebook init`);
+if (args[0] === "check") {
+  await runCheck(args.slice(1));
+} else if (args[0] !== "init") {
+  console.error(`Usage: repo-notebook init | repo-notebook check`);
   process.exit(2);
 }
 
@@ -198,13 +202,58 @@ function validateSelectedLocations(selected) {
   return [...new Set(selected)];
 }
 
+async function runCheck(options) {
+  const json = options.includes("--json");
+  const strict = options.includes("--strict");
+  const fix = options.includes("--fix");
+  const root = await findProjectRoot();
+  const notebookDir = path.join(root, notebookDirectory);
+
+  if (fix) {
+    const { fixed, changed } = await fixMechanical(notebookDir);
+    if (json) {
+      console.log(JSON.stringify({ fixed, changed }, null, 2));
+    } else if (fixed.length === 0) {
+      console.log("Nothing to fix.");
+    } else {
+      for (const f of fixed) console.log(`fixed ${f.code} (${f.file}): ${f.message}`);
+    }
+  }
+
+  const findings = await checkNotebook(notebookDir);
+  const { errors, warnings, stale, ok } = summarize(findings);
+
+  if (json) {
+    console.log(JSON.stringify({ ok, errors, warnings, stale }, null, 2));
+  } else if (findings.length === 0) {
+    console.log(`No structural issues found in ${notebookDir}.`);
+  } else {
+    for (const f of findings) {
+      const where = f.file ? ` (${f.file})` : "";
+      const tag = f.code.startsWith("S") ? "review" : f.code.startsWith("W") ? "warn" : "error";
+      console.log(`${f.code} [${tag}]${where}: ${f.message}`);
+    }
+  }
+
+  const failed = !ok || (strict && warnings.length > 0);
+  process.exit(failed ? 1 : 0);
+}
+
 function printHelp(version) {
   console.log(`Repo Notebook ${version}`);
   console.log("\nUsage:");
   console.log("  repo-notebook init");
   console.log("  repo-notebook init --location .agents --notebook --instruction AGENTS.md");
   console.log("  repo-notebook init --location .agents --replace-skills");
+  console.log("  repo-notebook check [--json] [--strict] [--fix]");
   console.log("\nInstalls Repo Notebook skills into selected harness locations.");
   console.log("--replace-skills explicitly replaces differing installed skill files.");
   console.log("Interactive mode asks before creating notebook files or modifying instruction files.");
+  console.log("\n`check` lints notebook structure: absent notebook, duplicate decision IDs,");
+  console.log("id/filename mismatches, dangling or incomplete supersession, and invalid");
+  console.log("status. --fix applies only mechanical fixes (align id to filename,");
+  console.log("renumber duplicate ids). --json prints machine-readable findings;");
+  console.log("--strict fails on warnings too.");
+  console.log("S001 findings are report-only review prompts (a superseded decision's");
+  console.log("terms still appear in current truth), never pass/fail.");
 }

@@ -46,6 +46,7 @@ Before proposing an update:
 3. Identify the exact existing entry to amend, or state that no equivalent entry was found.
 4. Maintain one canonical glossary entry, one rule, and one current behavior or technical choice per subject. Amend the identified entry instead of appending a duplicate.
 5. Maintain one current accepted decision per choice. When a choice changes, supersede the previous decision rather than rewriting its historical outcome.
+6. Before proposing an amendment to a current-truth artifact (`context.md`, `stack.md`, `system.md`, `glossary.md`, `principles.md`), identify the accepted decision that owns that fact. If one exists, the proposal MUST supersede it—create the next decision, mark the old record `superseded` with `superseded_by`, and update the current-truth artifact—all in the same atomic proposal. Amending the current-truth artifact without superseding its owning decision is incomplete: it leaves an `accepted` record contradicting shipped behavior.
 
 ## Confirm before writing
 
@@ -69,10 +70,11 @@ Read [the artifact formats](references/artifact-formats.md) before writing.
 - Keep principles load-bearing. Include rationale and provenance so future agents understand the rule.
 - Create a durable decision only when it should affect future work. Use `significance: durable` or `architectural`; do not create both a decision log and a parallel ADR system.
 - For glossary, principles, context, system, and stack, an amendment replaces the identified existing entry and removes its conflicting old wording.
-- Do not rewrite the outcome or rationale of an `accepted` decision to represent a later choice. Create the next decision, mark the old record superseded with `superseded_by`, and update every affected current-truth artifact in the same proposal.
+- Do not rewrite the outcome or rationale of an `accepted` decision to represent a later choice. When a change supersedes an owning decision (see Inspect existing records 6), create the next decision and mark the old record superseded with `superseded_by`, updating every affected current-truth artifact in the same proposal.
 - Keep `system.md` in the present tense. Amend only the affected behavior in place; preserve unrelated entries.
 - Keep `stack.md` as current truth. Put the reason for a consequential choice in `decisions/`.
 - Update `.repo-notebook/index.md` only when its map becomes inaccurate, and include any required index correction in the confirmed proposal.
+- Allocate decision IDs at write time. Immediately before writing, enumerate `.repo-notebook/decisions/`, find the highest numeric prefix, and allocate the next unused sequential ID with the existing padding width. Never reuse an ID, including IDs of deprecated or superseded records, and never reuse an ID allocated in an earlier turn: a record proposed before a write is not reserved, so re-enumerate and re-allocate at the moment of writing.
 
 ## Reconcile a settled Change Brief
 

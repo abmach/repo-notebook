@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-12
+
+### Added
+
+- `repo-notebook check` lints a notebook's decision structure: an absent notebook, duplicate IDs (including IDs differing only by zero-padding), `id`/filename mismatches, dangling or incomplete `superseded_by`, and invalid status or missing id. It is read-only, checks only mechanically decidable invariants, supports `--json` and `--strict`, and exits nonzero on error so CI or a harness can gate on it.
+- `repo-notebook check --fix` applies the mechanical corrections (align `id:` to the filename prefix, renumber duplicate IDs) and leaves record bodies untouched.
+- `check` reports `S001` stale candidates: a superseded decision whose title terms still appear in `system.md` or `stack.md`. These are report-only review prompts, never pass/fail.
+
+### Fixed
+
+- Capture now requires superseding an owning decision when a current-truth artifact changes, instead of amending the artifact while leaving a contradicting `accepted` decision in place.
+- Decision IDs are allocated at write time by re-enumerating `decisions/`, so an ID proposed in an earlier turn is not reused.
+- Context consultation must enumerate `decisions/` and read overlapping `accepted` records before any change that touches current truth, and the reconcile output must include a `Decisions consulted:` line, so a missing decision read is visible rather than silent.
+
 ## [0.3.0] - 2026-11-10
 
 ### Added
@@ -58,7 +72,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Project notebook templates for context, glossary, principles, decisions, current behavior, technical choices, and transient Change Briefs.
 - Automated skill, package-contract, and installer validation.
 
-[Unreleased]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.3.0...HEAD
+[Unreleased]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.4.0...HEAD
+[0.4.0]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.3.0...v0.4.0
 [0.3.0]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.2.2...v0.3.0
 [0.2.2]: https://gitlab.com/abmach/repo-notebook/-/tree/v0.2.2
 [0.2.1]: https://gitlab.com/abmach/repo-notebook/-/tree/v0.2.1

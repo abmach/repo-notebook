@@ -17,10 +17,17 @@ For this repository, GitLab is the canonical source and GitHub is a read-only di
 - **Capture** — register confirmed terms, principles, decisions, behavior, and technical choices.
 - **Bootstrap** — analyze an existing repository and propose an initial notebook with developer confirmation; refreshes preserve existing notebook paths unless deletion is explicitly approved.
 - **Thin installer** — install the skills into supported harness locations with explicit consent.
+- **Structural check** — lint a notebook for duplicate IDs, broken supersession, and invalid records, with a nonzero exit for CI or a harness.
 
 ## Install
 
-Use the consent-aware initializer with any supported package runner:
+Repo Notebook runs the same way however you invoke it: the CLI is a single
+`init` (install) and `check` (lint) command. Pick whichever form fits.
+
+### One-off, no install (recommended)
+
+Run the published package directly; nothing is added to the machine or the
+project:
 
 ```sh
 bun x repo-notebook init
@@ -29,6 +36,35 @@ npx repo-notebook init
 ```
 
 `yarn dlx` requires Yarn Berry (Yarn 2 or later); Yarn Classic has no `dlx` command.
+
+### Project-local (adds a dev dependency)
+
+Install it as a dev dependency so the version is pinned by the project
+lockfile, then run the local binary:
+
+```sh
+bun add -d repo-notebook && bun x repo-notebook init
+yarn add -D repo-notebook && yarn exec repo-notebook init
+npm install -D repo-notebook && npx repo-notebook init
+```
+
+Each runner's form: Bun runs a `node_modules/.bin` binary as `bun x <name>`
+(or `bun run <name>`); Yarn Berry uses `yarn exec <name>`; npm uses
+`npx <name>`. `yarn repo-notebook` is not portable — plain `yarn <name>`
+resolves a package.json script, not a binary — so use `yarn exec`.
+
+### Global (available everywhere)
+
+Install the binary on your `PATH` and run `repo-notebook` in any repository:
+
+```sh
+bun add -g repo-notebook && repo-notebook init
+npm install -g repo-notebook && repo-notebook init
+```
+
+`init` must run inside the target repository: it resolves the project root and
+writes the notebook and skills there. Global and project-local installs differ
+only in where the binary comes from; the effect on the repository is identical.
 
 The installer:
 
@@ -60,6 +96,44 @@ Explicit flags also count as consent and use the same arguments across all suppo
 ```
 
 Unknown flags fail without installing anything. Interactive mode asks before creating notebook files or modifying instruction files.
+
+## Check notebook structure
+
+`check` lints a notebook for mechanically decidable problems. It is read-only,
+needs no install step beyond the same runner forms above, and exits nonzero when
+an error is found so it can gate CI or a harness:
+
+```sh
+bun x repo-notebook check
+yarn dlx repo-notebook check
+npx repo-notebook check
+```
+
+It reports, as errors:
+
+- no notebook present at the resolved project root (`E000`) — an absent
+  notebook fails rather than passing as "clean";
+- duplicate decision IDs (two files declaring the same `id`, including IDs
+  that differ only by zero-padding, e.g. `1` vs `0001`);
+- `id`/filename-prefix mismatches;
+- `superseded_by` pointing at a decision that does not exist;
+- a record marked `superseded` with no `superseded_by`;
+- an invalid `status` or a missing numeric `id`.
+
+Warnings (non-fatal): an `accepted` record that declares `superseded_by`, and
+gaps in the ID sequence. `--strict` fails on warnings too; `--json` prints
+machine-readable output.
+
+**`--fix`** applies the mechanical corrections only: align `id:` to the
+filename prefix, and renumber duplicate IDs. It never rewrites record bodies.
+
+**`S001` stale candidates** (report-only, never pass/fail): a superseded
+decision whose title terms still appear in `system.md` or `stack.md` is
+surfaced as a review prompt. This is a deliberate, transparent keyword match,
+not a verdict: it never decides whether the claim is actually stale, only that
+a human (or the `context` skill) should look. `check` makes no attempt to judge
+whether an `accepted` decision *contradicts* current behavior — that semantic
+call stays with the agent and the developer.
 
 ## The project notebook
 

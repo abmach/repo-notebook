@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-11-13
+
+### Fixed
+
+- `check` is markdown-fence aware: a heading or numbered rule inside a fenced code block no longer satisfies or trips `E007`/`E008`. A `system.md` with only an example heading now fails correctly, and an example principle in a fence no longer false-positives.
+- `check` no longer false-positives on valid index links: `./context.md` and `context.md#anchor` now count as linking the artifact, and a dangling `./`-prefixed link is still reported.
+- `check` detects principles numbered `1)` as well as `1.`, so a rule with no `Source:` cannot slip through on an alternate list style.
+- `check` rejects unknown flags and positional arguments instead of silently ignoring them (a typo like `--jsn` no longer runs as a plain check).
+- `validate:package` verifies `lib/checker.js` and the notebook templates are in the tarball, and no longer depends on a machine-specific npm path (works under Bun and Node, and via PATH).
+
 ## [0.5.0] - 2026-11-13
 
 ### Added
@@ -82,7 +92,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Project notebook templates for context, glossary, principles, decisions, current behavior, technical choices, and transient Change Briefs.
 - Automated skill, package-contract, and installer validation.
 
-[Unreleased]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.5.0...HEAD
+[Unreleased]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.5.1...HEAD
+[0.5.1]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.5.0...v0.5.1
 [0.5.0]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.4.0...v0.5.0
 [0.4.0]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.3.0...v0.4.0
 [0.3.0]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.2.2...v0.3.0

@@ -19,6 +19,7 @@ import {
 } from "../lib/prompts.js";
 import { checkNotebook, summarize, fixMechanical } from "../lib/checker.js";
 import path from "node:path";
+const CHECK_FLAGS = new Set(["--json", "--strict", "--fix"]);
 
 const args = process.argv.slice(2);
 const packageData = await loadPackageData();
@@ -203,6 +204,12 @@ function validateSelectedLocations(selected) {
 }
 
 async function runCheck(options) {
+  for (const opt of options) {
+    if (!CHECK_FLAGS.has(opt)) {
+      console.error(`Unknown option for check: ${opt}`);
+      process.exit(2);
+    }
+  }
   const json = options.includes("--json");
   const strict = options.includes("--strict");
   const fix = options.includes("--fix");

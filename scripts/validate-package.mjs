@@ -30,8 +30,16 @@ const expected = [
   "package.json",
   "bin/repo-notebook.js",
   "lib/installer.js",
+  "lib/checker.js",
+  "lib/prompts.js",
   "templates/manifest.json",
   "templates/instruction.md",
+  "templates/notebook/index.md",
+  "templates/notebook/context.md",
+  "templates/notebook/glossary.md",
+  "templates/notebook/principles.md",
+  "templates/notebook/system.md",
+  "templates/notebook/stack.md",
   "skills/bootstrap/SKILL.md",
   "skills/capture/SKILL.md",
   "skills/capture/references/artifact-formats.md",
@@ -51,23 +59,42 @@ if (missing.length > 0 || forbidden.length > 0) {
 
 console.log(`Package contains ${files.length} expected consumer files.`);
 
+async function whichAll(bin) {
+  const { execFileSync } = await import("node:child_process");
+  try {
+    const cmd = process.platform === "win32" ? "where" : "which";
+    const out = execFileSync(cmd, [bin], { encoding: "utf8" });
+    return out.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
 async function resolveCli(entrypoint) {
   const candidates = [];
   if (process.env.npm_execpath) {
     candidates.push(process.env.npm_execpath);
   }
-  candidates.push(path.join(path.dirname(process.execPath), "node_modules", "npm", "bin", entrypoint));
-  candidates.push(path.join(path.dirname(process.execPath), "..", "lib", "node_modules", "npm", "bin", entrypoint));
-  candidates.push(path.join("D:\\Tools\\active\\nodejs", "node_modules", "npm", "bin", entrypoint));
+  // Resolve npm relative to every plausible Node/npm install: alongside the
+  // current executable, as a sibling lib tree, and via PATH. Bun and Node have
+  // different execPath layouts, so hardcoding one breaks the other.
+  const exeDir = path.dirname(process.execPath);
+  candidates.push(path.join(exeDir, "node_modules", "npm", "bin", entrypoint));
+  candidates.push(path.join(exeDir, "..", "lib", "node_modules", "npm", "bin", entrypoint));
+  candidates.push(path.join(exeDir, "..", "..", "lib", "node_modules", "npm", "bin", entrypoint));
   candidates.push(path.join("/usr/local/lib/node_modules/npm/bin", entrypoint));
+  candidates.push(path.join("/usr/lib/node_modules/npm/bin", entrypoint));
+  // Last resort: every `npm` on PATH (a machine may have several shims).
+  for (const onPath of await whichAll("npm")) {
+    const dir = path.dirname(onPath);
+    candidates.push(path.join(dir, "node_modules", "npm", "bin", entrypoint));
+    candidates.push(path.join(dir, "..", "lib", "node_modules", "npm", "bin", entrypoint));
+  }
 
   for (const candidate of candidates) {
-    if (path.basename(candidate) !== entrypoint) {
-      continue;
-    }
     try {
       await access(candidate);
-      return candidate;
+      if (path.basename(candidate) === entrypoint) return candidate;
     } catch {
       // Try the next candidate.
     }

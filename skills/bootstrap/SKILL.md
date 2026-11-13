@@ -66,6 +66,7 @@ If `.repo-notebook/` already exists:
 4. Do not overwrite, amend, or delete confirmed records without explicit developer approval of the displayed proposal.
 5. Do not delete an existing record or directory during discovery or refresh. Deletion requires a separate explicit proposal that names the exact path and reason, followed by explicit developer approval.
 6. Do not settle or remove transient Change Briefs during bootstrap. Use the `scope` and `capture` skills for that workflow; preserve `work/` and its briefs here.
+7. After applying approved additions and amendments, run `repo-notebook check` on the notebook. Fold any error it reports into a further proposal; do not report the refresh as complete while a structural error remains.
 
 ## Boundaries
 

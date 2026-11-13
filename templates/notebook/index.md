@@ -13,4 +13,4 @@ Durable, curated context for this project.
 
 ## Transient work
 
-Change Briefs live in `work/` while scope is being shaped or implemented. Promote durable consequences and remove settled briefs.
+- [Change Briefs](work/) — scope being shaped or implemented. Promote durable consequences and remove settled briefs.

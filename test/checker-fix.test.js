@@ -23,7 +23,7 @@ test("S001 flags a superseded decision whose terms persist in system.md", async 
   const root = await notebook({
     "0001-inmemory.md": dec(1, "superseded", "Use in-memory database", "\nsuperseded_by: 2"),
     "0002-pg.md": dec(2, "accepted", "Use PostgreSQL"),
-  }, { "system.md": "## Persistence\n\n- Uses an in-memory database.\n" });
+  }, { "system.md": "# System Behavior\n\n## Persistence\n\n- Uses an in-memory database.\n" });
   try {
     const f = await checkNotebook(nb(root));
     const s = f.filter((x) => x.code === "S001");
@@ -36,7 +36,7 @@ test("S001 does not fire when current truth no longer mentions the term", async 
   const root = await notebook({
     "0001-inmemory.md": dec(1, "superseded", "Use in-memory database", "\nsuperseded_by: 2"),
     "0002-pg.md": dec(2, "accepted", "Use PostgreSQL"),
-  }, { "system.md": "## Persistence\n\n- Uses PostgreSQL.\n" });
+  }, { "system.md": "# System Behavior\n\n## Persistence\n\n- Uses PostgreSQL.\n" });
   try {
     const f = await checkNotebook(nb(root));
     assert.equal(f.filter((x) => x.code === "S001").length, 0);

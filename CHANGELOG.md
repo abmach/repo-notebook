@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-13
+
+### Added
+
+- `check` validates the notebook's own format, not only `decisions/`: required top-level headings per artifact (`E007`), principle provenance (`E008`, every numbered rule must carry `Source:`), and index integrity (`W003` unlinked top-level artifact, `W004` dangling `index.md` link). The notebook template now links `work/` so a fresh install passes.
+
+### Changed
+
+- Bootstrap refresh and context reconciliation end by running `repo-notebook check`; a structural error is folded into a further proposal rather than reported as complete.
+
 ## [0.4.0] - 2026-11-12
 
 ### Added
@@ -72,7 +82,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Project notebook templates for context, glossary, principles, decisions, current behavior, technical choices, and transient Change Briefs.
 - Automated skill, package-contract, and installer validation.
 
-[Unreleased]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.4.0...HEAD
+[Unreleased]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.5.0...HEAD
+[0.5.0]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.4.0...v0.5.0
 [0.4.0]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.3.0...v0.4.0
 [0.3.0]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.2.2...v0.3.0
 [0.2.2]: https://gitlab.com/abmach/repo-notebook/-/tree/v0.2.2

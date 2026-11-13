@@ -118,11 +118,15 @@ It reports, as errors:
 - `id`/filename-prefix mismatches;
 - `superseded_by` pointing at a decision that does not exist;
 - a record marked `superseded` with no `superseded_by`;
-- an invalid `status` or a missing numeric `id`.
+- an invalid `status` or a missing numeric `id`;
+- an artifact missing its required top-level heading (`E007` — `context.md`,
+  `glossary.md`, `principles.md`, `system.md`, `stack.md`);
+- a numbered principle with no `Source:` (`E008`).
 
-Warnings (non-fatal): an `accepted` record that declares `superseded_by`, and
-gaps in the ID sequence. `--strict` fails on warnings too; `--json` prints
-machine-readable output.
+Warnings (non-fatal): an `accepted` record that declares `superseded_by`, gaps
+in the ID sequence, a top-level artifact not linked from `index.md` (`W003`),
+and an `index.md` link whose target does not exist (`W004`). `--strict` fails
+on warnings too; `--json` prints machine-readable output.
 
 **`--fix`** applies the mechanical corrections only: align `id:` to the
 filename prefix, and renumber duplicate IDs. It never rewrites record bodies.

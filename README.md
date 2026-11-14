@@ -24,6 +24,8 @@ For this repository, GitLab is the canonical source and GitHub is a read-only di
 Repo Notebook runs the same way however you invoke it: the CLI is a single
 `init` (install) and `check` (lint) command. Pick whichever form fits.
 
+Requires Node 20.17 or newer (or 22.13+ / 23.5+).
+
 ### One-off, no install (recommended)
 
 Run the published package directly; nothing is added to the machine or the
@@ -178,8 +180,7 @@ The always-read instruction block provides dependable consultation. Skill descri
 ## Development
 
 ```sh
-npm run validate
-
+bun run validate
 ```
 
 Validation checks every skill against the Agent Skills specification, verifies the npm tarball contract, and runs installer tests.

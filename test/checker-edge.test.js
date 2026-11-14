@@ -79,3 +79,25 @@ test("CRLF front matter is parsed (no false errors)", async () => {
     assert.equal(f.filter((x) => x.code.startsWith("E")).length, 0);
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
+
+test("metadata-shaped body text is not read as front matter", async () => {
+  const dir = await nb({
+    "decisions/0003-nofm.md": "# No front matter\n\nExample:\n\nid: 5\nstatus: accepted\n",
+  }, ["decisions"]);
+  try {
+    const f = await checkNotebook(dir);
+    // The body id is not front matter: the record has no id (E006) and no
+    // id/filename mismatch (E002) invented from prose.
+    assert.deepEqual(codes(f), ["E006"]);
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test("a body superseded_by line does not satisfy E004", async () => {
+  const dir = await nb({
+    "decisions/0001-old.md": "---\nid: 1\nstatus: superseded\n---\n\n# Old\n\nExample front matter:\n\nsuperseded_by: 2\n",
+  }, ["decisions"]);
+  try {
+    const f = await checkNotebook(dir);
+    assert.ok(codes(f).includes("E004"));
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});

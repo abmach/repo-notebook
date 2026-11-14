@@ -89,3 +89,29 @@ test("fixMechanical is idempotent on a clean notebook", async () => {
     assert.equal(r.changed, false);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
+
+test("fixMechanical does not rewrite an id: line in the record body", async () => {
+  const root = await notebook({
+    "0007-thing.md": "---\nid: 3\nstatus: accepted\n---\n\n# Thing\n\nExample:\n\nid: 99\n",
+  });
+  try {
+    await fixMechanical(nb(root));
+    const text = await readFile(path.join(nb(root), "decisions", "0007-thing.md"), "utf8");
+    assert.match(text, /^id: 0007$/m);
+    assert.match(text, /^id: 99$/m);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("fixMechanical renumbers duplicates by name, not filesystem order", async () => {
+  const root = await notebook({
+    "0001-zeta.md": dec(1, "accepted", "Zeta"),
+    "0001-alpha.md": dec(1, "accepted", "Alpha"),
+  });
+  try {
+    await fixMechanical(nb(root));
+    const alpha = await readFile(path.join(nb(root), "decisions", "0001-alpha.md"), "utf8");
+    const zeta = await readFile(path.join(nb(root), "decisions", "0002-zeta.md"), "utf8");
+    assert.match(alpha, /^id: 1$/m);
+    assert.match(zeta, /^id: 0002$/m);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});

@@ -25,7 +25,8 @@ const args = process.argv.slice(2);
 const packageData = await loadPackageData();
 
 if (args.includes("--help") || args.includes("-h")) {
-  printHelp(packageData.version);
+  if (args[0] === "check") printCheckHelp(packageData.version);
+  else printHelp(packageData.version);
   process.exit(0);
 }
 
@@ -36,7 +37,14 @@ if (args[0] === "check") {
   process.exit(2);
 }
 
-const explicitPlan = parseExplicitOptions(args.slice(1));
+let explicitPlan;
+try {
+  explicitPlan = parseExplicitOptions(args.slice(1));
+} catch (error) {
+  console.error(error.message);
+  printHelp(packageData.version);
+  process.exit(2);
+}
 const root = await findProjectRoot();
 const inspection = await inspectProject(root);
 const ui = createUi();
@@ -130,6 +138,9 @@ function parseExplicitOptions(options) {
     const option = options[index];
     if (option === "--location") {
       const value = options[++index];
+      if (value === undefined) {
+        throw new Error("Missing value for --location");
+      }
       if (!supportedLocations[value]) {
         throw new Error(`Unsupported location: ${value}`);
       }
@@ -138,6 +149,9 @@ function parseExplicitOptions(options) {
       notebook = true;
     } else if (option === "--instruction") {
       const value = options[++index];
+      if (value === undefined) {
+        throw new Error("Missing value for --instruction");
+      }
       if (!["AGENTS.md", "CLAUDE.md"].includes(value)) {
         throw new Error(`Unsupported instruction file: ${value}`);
       }
@@ -244,6 +258,16 @@ async function runCheck(options) {
 
   const failed = !ok || (strict && warnings.length > 0);
   process.exit(failed ? 1 : 0);
+}
+
+function printCheckHelp(version) {
+  console.log(`Repo Notebook ${version}`);
+  console.log("\nUsage:");
+  console.log("  repo-notebook check [--json] [--strict] [--fix]");
+  console.log("\nLints the notebook at the resolved project root.");
+  console.log("--json prints machine-readable findings; --strict fails on warnings too.");
+  console.log("--fix applies only mechanical corrections (align id to filename prefix,");
+  console.log("renumber duplicate ids).");
 }
 
 function printHelp(version) {

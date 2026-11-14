@@ -22,9 +22,11 @@ stages:
 validate:
   stage: validate
   image: node:24
+  interruptible: true
   script:
     - npm install -g npm@11
-    - npm install -g bun
+    # pinned: an unpinned Bun can turn every branch red on an upstream release
+    - npm install -g bun@1.4.4
     - bun install --frozen-lockfile
     - bun run validate
 

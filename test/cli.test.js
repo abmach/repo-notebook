@@ -118,8 +118,9 @@ test("explicit init rejects unknown options without installing anything", async 
       timeout: 30_000,
     });
 
-    assert.notEqual(result.status, 0);
-    assert.match(result.stderr, /Unknown option: --unknown/);
+    assert.equal(result.status, 2);
+    assert.match(result.stderr.split("\n")[0], /^Unknown option: --unknown$/);
+    assert.doesNotMatch(result.stderr, /at parseExplicitOptions/);
     await assertMissing(path.join(root, ".agents"));
     await assertMissing(path.join(root, ".repo-notebook"));
     await assertMissing(path.join(root, ".repo-notebook-install.json"));

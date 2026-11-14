@@ -274,3 +274,33 @@ test("writes an installation marker", async () => {
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test("addInstruction repairs an unterminated block instead of duplicating it", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "repo-notebook-test-"));
+  try {
+    const packageData = await loadPackageData();
+    await writeFile(path.join(root, "AGENTS.md"), "# Rules\n\n<!-- repo-notebook:start -->\n");
+    await addInstruction(root, "AGENTS.md", packageData);
+    const text = await readFile(path.join(root, "AGENTS.md"), "utf8");
+    assert.equal(text.match(/repo-notebook:start/g).length, 1);
+    assert.equal(text.match(/repo-notebook:end/g).length, 1);
+    assert.match(text, /^# Rules$/m);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("installSkills refuses a location that is a file", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "repo-notebook-test-"));
+  try {
+    const packageData = await loadPackageData();
+    await writeFile(path.join(root, ".agents"), "not a directory\n");
+    await assert.rejects(
+      () => installSkills(root, ".agents", packageData),
+      /\.agents exists as a file/,
+    );
+    assert.equal(await readFile(path.join(root, ".agents"), "utf8"), "not a directory\n");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

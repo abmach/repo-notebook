@@ -1,16 +1,8 @@
 {
-  "version": "0.1.0",
   "skills": [
     "bootstrap",
     "capture",
     "context",
     "scope"
-  ],
-  "notebookDirectory": ".repo-notebook",
-  "instructionFiles": {
-    ".agents": "AGENTS.md",
-    ".claude": "CLAUDE.md",
-    ".omp": "AGENTS.md",
-    ".opencode": "AGENTS.md"
-  }
+  ]
 }

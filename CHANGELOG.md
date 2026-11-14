@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-13
+
+### Added
+
+- `package.json` declares the supported Node range (`^20.17.0 || ^22.13.0 || >=23.5.0`), matching the `@inquirer/prompts` floor, and `repo-notebook check --help` prints check-specific usage.
+
+### Fixed
+
+- `check` reads decision front matter only from the leading `---` block, so metadata-shaped prose or a fenced example can no longer invent or mask an `id`, `status`, or `superseded_by`.
+- `check --fix` processes decisions in name order, so which duplicate keeps a contested id no longer depends on filesystem order.
+- `init` fails with the offending path when a location or instruction target exists as a file, and repairs an unterminated `repo-notebook` block instead of appending a duplicate.
+- Invalid `init` options exit 2 with a one-line message instead of a stack trace.
+
+### Changed
+
+- `validate:package` derives the expected `bin/` and `lib/` files from the tree and fails on any unexpected packaged file; both validators share one npm CLI resolver.
+
 ## [0.5.2] - 2026-11-13
 
 ### Added
@@ -99,12 +116,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Project notebook templates for context, glossary, principles, decisions, current behavior, technical choices, and transient Change Briefs.
 - Automated skill, package-contract, and installer validation.
 
-[Unreleased]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.5.2...HEAD
+[Unreleased]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.6.0...HEAD
+[0.6.0]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.5.2...v0.6.0
 [0.5.2]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.5.1...v0.5.2
 [0.5.1]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.5.0...v0.5.1
 [0.5.0]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.4.0...v0.5.0
 [0.4.0]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.3.0...v0.4.0
 [0.3.0]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.2.2...v0.3.0
-[0.2.2]: https://gitlab.com/abmach/repo-notebook/-/tree/v0.2.2
-[0.2.1]: https://gitlab.com/abmach/repo-notebook/-/tree/v0.2.1
-[0.2.0]: https://gitlab.com/abmach/repo-notebook/-/tree/v0.2.0
+[0.2.2]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.2.1...v0.2.2
+[0.2.1]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.2.0...v0.2.1
+[0.2.0]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.1.1...v0.2.0
+[0.1.1]: https://gitlab.com/abmach/repo-notebook/-/compare/v0.1.0...v0.1.1
+[0.1.0]: https://gitlab.com/abmach/repo-notebook/-/tree/v0.1.0

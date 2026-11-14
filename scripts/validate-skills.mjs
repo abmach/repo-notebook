@@ -1,6 +1,8 @@
 import { spawnSync } from "node:child_process";
-import { access, readdir } from "node:fs/promises";
+import { readdir } from "node:fs/promises";
 import path from "node:path";
+
+import { resolveCli } from "./resolve-cli.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const skillsRoot = path.join(root, "skills");
@@ -30,30 +32,3 @@ for (const skill of skills) {
 }
 
 console.log(`Validated ${skills.length} skills.`);
-
-async function resolveCli(entrypoint) {
-  const candidates = [];
-  if (process.env.npm_execpath) {
-    candidates.push(process.env.npm_execpath);
-  }
-  candidates.push(path.join(path.dirname(process.execPath), "node_modules", "npm", "bin", entrypoint));
-  candidates.push(path.join(path.dirname(process.execPath), "..", "lib", "node_modules", "npm", "bin", entrypoint));
-  candidates.push(path.join("D:\\Tools\\active\\nodejs", "node_modules", "npm", "bin", entrypoint));
-  candidates.push(path.join("/usr/local/lib/node_modules/npm/bin", entrypoint));
-
-
-  for (const candidate of candidates) {
-    if (path.basename(candidate) !== entrypoint) {
-      continue;
-    }
-    try {
-      await access(candidate);
-      return candidate;
-    } catch {
-      // Try the next candidate.
-    }
-  }
-
-  console.error(`Unable to locate ${entrypoint}; run this validator through npm or Bun with Node installed.`);
-  process.exit(1);
-}

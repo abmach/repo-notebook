@@ -1,6 +1,8 @@
 import { spawnSync } from "node:child_process";
-import { access, readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
+
+import { resolveCli } from "./resolve-cli.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const packageJson = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
@@ -23,15 +25,22 @@ if (!metadata?.files) {
   process.exit(1);
 }
 const files = metadata.files.map((file) => file.path.replaceAll("\\", "/"));
+
+// Code files are derived from the tree, so a new module is part of the contract
+// the moment it exists: if npm does not ship it, the check fails.
+async function listJs(directory) {
+  const entries = await readdir(path.join(root, directory), { withFileTypes: true });
+  return entries
+    .filter((entry) => entry.isFile() && entry.name.endsWith(".js"))
+    .map((entry) => `${directory}/${entry.name}`)
+    .sort();
+}
+
 const expected = [
   "README.md",
   "LICENSE",
   "CHANGELOG.md",
   "package.json",
-  "bin/repo-notebook.js",
-  "lib/installer.js",
-  "lib/checker.js",
-  "lib/prompts.js",
   "templates/manifest.json",
   "templates/instruction.md",
   "templates/notebook/index.md",
@@ -40,66 +49,27 @@ const expected = [
   "templates/notebook/principles.md",
   "templates/notebook/system.md",
   "templates/notebook/stack.md",
+  "templates/notebook/decisions/.gitkeep",
+  "templates/notebook/work/.gitkeep",
   "skills/bootstrap/SKILL.md",
   "skills/capture/SKILL.md",
   "skills/capture/references/artifact-formats.md",
   "skills/context/SKILL.md",
   "skills/scope/SKILL.md",
   "skills/scope/references/change-brief.md",
+  ...(await listJs("bin")),
+  ...(await listJs("lib")),
 ];
 
-const missing = expected.filter((file) => !files.includes(file));
-const forbidden = files.filter((file) => file.startsWith("scripts/") || file.startsWith("test/"));
-if (missing.length > 0 || forbidden.length > 0) {
+const packaged = new Set(files);
+const allowedRoot = new Set(["README.md", "LICENSE", "CHANGELOG.md", "package.json"]);
+const missing = expected.filter((file) => !packaged.has(file));
+const unexpected = files.filter((file) => !expected.includes(file) && !allowedRoot.has(file));
+if (missing.length > 0 || unexpected.length > 0) {
   console.error("Package file contract failed.");
   if (missing.length > 0) console.error(`Missing: ${missing.join(", ")}`);
-  if (forbidden.length > 0) console.error(`Unexpected: ${forbidden.join(", ")}`);
+  if (unexpected.length > 0) console.error(`Unexpected: ${unexpected.join(", ")}`);
   process.exit(1);
 }
 
 console.log(`Package contains ${files.length} expected consumer files.`);
-
-async function whichAll(bin) {
-  const { execFileSync } = await import("node:child_process");
-  try {
-    const cmd = process.platform === "win32" ? "where" : "which";
-    const out = execFileSync(cmd, [bin], { encoding: "utf8" });
-    return out.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
-  } catch {
-    return [];
-  }
-}
-
-async function resolveCli(entrypoint) {
-  const candidates = [];
-  if (process.env.npm_execpath) {
-    candidates.push(process.env.npm_execpath);
-  }
-  // Resolve npm relative to every plausible Node/npm install: alongside the
-  // current executable, as a sibling lib tree, and via PATH. Bun and Node have
-  // different execPath layouts, so hardcoding one breaks the other.
-  const exeDir = path.dirname(process.execPath);
-  candidates.push(path.join(exeDir, "node_modules", "npm", "bin", entrypoint));
-  candidates.push(path.join(exeDir, "..", "lib", "node_modules", "npm", "bin", entrypoint));
-  candidates.push(path.join(exeDir, "..", "..", "lib", "node_modules", "npm", "bin", entrypoint));
-  candidates.push(path.join("/usr/local/lib/node_modules/npm/bin", entrypoint));
-  candidates.push(path.join("/usr/lib/node_modules/npm/bin", entrypoint));
-  // Last resort: every `npm` on PATH (a machine may have several shims).
-  for (const onPath of await whichAll("npm")) {
-    const dir = path.dirname(onPath);
-    candidates.push(path.join(dir, "node_modules", "npm", "bin", entrypoint));
-    candidates.push(path.join(dir, "..", "lib", "node_modules", "npm", "bin", entrypoint));
-  }
-
-  for (const candidate of candidates) {
-    try {
-      await access(candidate);
-      if (path.basename(candidate) === entrypoint) return candidate;
-    } catch {
-      // Try the next candidate.
-    }
-  }
-
-  console.error(`Unable to locate ${entrypoint}; run this validator through npm or with Node installed.`);
-  process.exit(1);
-}
